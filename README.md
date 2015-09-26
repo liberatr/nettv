@@ -4,9 +4,9 @@
 
 Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.
 
-I was recently part of a Symfony and Drupal 8 training at DrupalCon Los Angeles, and as a dyed-in-the-wool Drupal programmer, there were a few modern subjects I had to familiarize myself with while preparing for that training. Chief among them was the concept in Symfony and Drupal 8 called _Services_, which help you keep your code decoupled and, in my opinion, easier to read. 
+I was recently part of a Symfony and Drupal 8 training at DrupalCon Los Angeles, and as a dyed-in-the-wool Drupal programmer, there were a few modern subjects I had to familiarize myself with while preparing for that training. Chief among them was the concept in Symfony and Drupal 8 called _Services_, which help you keep your code decoupled and, in my opinion, easier to read.
 
-A _Service_ is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 site has a service for sending [email](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8), for [logging errors](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8), for [making HTTP requests](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8), and dozens of other common tasks. 
+A _Service_ is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 site has a service for sending [email](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8), for [logging errors](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8), for [making HTTP requests](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8), and dozens of other common tasks.
 
 While Services are objects, not all objects are suitable services - for example, a node is not a service, it is content. There is, however, a [`token`](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Utility!Token.php/class/Token/8) service, which is a great example, since you only really need one token service for your entire site. The new Configuration Management systems in Drupal 8 use services extensively, and you will learn a bit about Config in this blog post. First, I'll show you how a very common function, making links, uses services.
 
@@ -24,7 +24,7 @@ public static function l($text, Url $url, $collect_cacheability_metadata = FALSE
 }
 ```
 
-This says to get the service called `link_generator` and call its `generate()` method. This way, you don't have to know where the link_generator class is defined, or even what class name it uses, but you can always find it if you need to. 
+This says to get the service called `link_generator` and call its `generate()` method. This way, you don't have to know where the link_generator class is defined, or even what class name it uses, but you can always find it if you need to.
 
 ##A metaphor for Services
 
@@ -45,25 +45,25 @@ Each Drupal 8 site comes with close to 300 Services that are defined by core. On
     arguments: ['@config.storage', '@event_dispatcher', '@config.typed']
 ```
 
-The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced `variable_get()` and `variable_set()` in Drupal 8). The code above simply maps an alias that can be invoked in a `modulename.services.yml` file with the string `@config.factory`. The `@` symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the `arguments` line. The `@config.storage` is another service that knows where to store services on your site - usually in YAML files. `@config_typed` helps to store different data types in config objects, and the `@event_dispatcher` helps to "lazy load" classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overheard of your application and keeps the site fast and lean.
+The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced `variable_get()` and `variable_set()` in Drupal 8). The code above simply maps an alias that can be invoked in a `modulename.services.yml` file with the string `@config.factory`. The `@` symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the `arguments` line. The `@config.storage` is another service that knows where to store services on your site - usually in YAML files. `@config.typed` helps to store different data types in config objects, and the `@event_dispatcher` helps to "lazy load" classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overheard of your application and keeps the site fast and lean.
 
 Part of the NetTv module will be a `nettv.services.yml` file that lives in your `nettv` module directory:
 
 ```
 services:
-  nettv.watch:
-    class: Drupal\nettv\Watch
+  nettv.watch_cartoons:
+    class: Drupal\nettv\WatchCartoons
     arguments: ["@config.factory"]
 ```
 
 There are lots of things to point out about this file:
 
-* There is a reference to a class called `Watch`, which is defined as a service provided by this module. 
-* Just as with the defenition of `config.factory` in core, we are naming a Service called `nettv.watch`.
+* There is a reference to a class called `WatchCartoons`, which is defined as a service provided by this module.
+* Just as with the defenition of `config.factory` in core, we are naming a Service called `nettv.watch_cartoons`.
 * The name of the service is anything you want.
-* The `Watch` class you write does not need to be specific to this module or even Drupal in order to be used, because eventually the Service Container will call it by using this YAML definition.
-* By using this Service model and namespacing, your could have another module on the site that defines a `Watch` class and never fear a conflict between the two.
-* When you add the ConfigFactory to your classes constructor, it will be added using Dependency Injection. You can rest easy knowing that Drupal's Service Container will take care of loading the right code and getting the right object to the constructor at the right time.
+* The `WatchCartoons` class you write does not need to be specific to this module or even Drupal in order to be used, because eventually the Service Container will call it by using this YAML definition. i.e. You can bring in outside libraries from github or other projects.
+* By using this Service model and namespacing, your could have another module on the site that defines a `WatchCartoons` class and never fear a conflict between the two.
+* When you add the ConfigFactory to your class' constructor, it will be added using Dependency Injection. You can rest easy knowing that Drupal's Service Container will take care of loading the right code and getting the right object to the constructor at the right time.
 
 ##The Code
 
@@ -73,10 +73,10 @@ Before you go any farther, I'm going to save you several steps by having you [cl
 
 ##Constructing an object that depends on a Service
 
-In `NetTv.php`, look at the constructor for the class:
+In `WatchCartoons.php`, look at the constructor for the class:
 
 ```
-class NetTV {
+class WatchCartoons {
 ...
   public function __construct(ConfigFactory $config_factory) {
     $this->config_factory = $config_factory;
@@ -85,21 +85,21 @@ class NetTV {
 }
 ```
 
-Notice that `NetTV` is just a basic PHP class, it does not extend or implement anything specific to Drupal. (i.e. you should be able to easily re-use this code on non-Drupal projects)
+Notice that `NetTV` is just a basic PHP class, it does not extend or implement anything specific to Drupal. (i.e. you should be able to pretty easily re-use this code on non-Drupal projects)
 
 As soon as you create a new NetTV object, it expects there to be an instance of `ConfigFactory` passed in so its methods can use it to retrieve and store config data. Notice that the argument to the constructor is type-hinted, so it must be a `ConfigFactory` object. The Service Container enables it to work in this way. You'll sometimes see a Service Container referred to as a Dependency Injection Container.
 
-When you write code that expects an instance of the `ConfigFactory`, you're using _Dependency Injection_ - you don't instantiate the `$config_factory`, your system provides it - and only the right kind of object will work. 
+When you write code that expects an instance of the `ConfigFactory`, you're using _Dependency Injection_ - you don't instantiate the `$config_factory`, your system provides it - and only the right kind of object will work.
 
 ##Using the Config Factory as a Service
 
-Finally, look at the action method on the `NetTV` class:
+Finally, look at the action method on the `WatchCartoons` class:
 
 ```
-class NetTV {
+class WatchCartoons {
 ...
   public function getBasicInformation() {
-    $config = $this->config_factory->get('nettv.basic_information');
+    $config = $this->config_factory->get('nettv.watch_cartoons');
 
     return sprintf(
       'Playlists are sorted by %s and hold %d movies. Movie night is %s.',
@@ -112,7 +112,7 @@ class NetTV {
 }
 ```
 
-The config itself is loaded from a YAML file inside your  project `config/install/nettv.basic_information.yml` - until Drupal saves it. You can set the default values for your NetTV module like so:
+The config itself is loaded from a YAML file inside your  project `config/install/nettv.watch_cartoons.yml` - until Drupal saves it. You can set the default values for your NetTV module like so:
 
 ```
 movienight: Saturday
@@ -168,16 +168,16 @@ This code provides a Block you can enable through Drupal's admin interface. Once
 
 Notice that while there are lots of OOP-isms in this project, we never had to use the `new` keyword, or the ever-confusing `$this`. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.
 
-The new concept of using a Service Container to instantiate objects should be a bit clearer to you now. Remember that it exists to give you a standard way to work with objects you need to include in your project, and that using it the right way will save you time and headaches while making it easier for non-Drupal programmers to read an understand your code. 
+The new concept of using a Service Container to instantiate objects should be a bit clearer to you now. Remember that it exists to give you a standard way to work with objects you need to include in your project, and that using it the right way will save you time and headaches while making it easier for non-Drupal programmers to read an understand your code.
 
 
 
 
 
 
+## Useful links
 
-
-
+* [Drupal.org: Services and dependency injection in Drupal 8](https://www.drupal.org/node/2133171)
 
 
 

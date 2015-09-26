@@ -1,0 +1,7 @@
+name: NetTv
+type: module
+description: NetTV Services Example
+core: 8.x
+package: demo
+dependencies:
+  - block

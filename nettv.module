@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Contains nettv.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function nettv_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the nettv module.
+    case 'help.page.nettv':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('NetTV Services Example') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nettv_theme() {
+  $theme = [];
+
+  return $theme;
+}

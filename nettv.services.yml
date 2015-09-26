@@ -1,0 +1,5 @@
+services:
+  nettv.watch_cartoons:
+    class: Drupal\nettv\WatchCartoons
+    arguments: ["@config.factory"]
+

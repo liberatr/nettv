@@ -1,0 +1,4 @@
+movienight: Saturday
+playlist:
+  sort: 'Title (A-Z)'
+  maxlength: 99
