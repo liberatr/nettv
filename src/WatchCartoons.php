@@ -3,11 +3,19 @@
 /**
  * @file
  * Contains Drupal\nettv\WatchCartoons.
+ *
+ * This class is tied into Drupal's config, but it doesn't have to be.
+ * As long as you implement a getBasicInformation() method, you can
+ * rewrite this service without having to rewrite the block plugin code.
+ *
+ * This code also shows how to use the new form of the l() function.
+ *
  */
 
 namespace Drupal\nettv;
 
 use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Url;
 
 /**
  * Class WatchCartoons.
@@ -30,13 +38,14 @@ class WatchCartoons {
   }
 
   public function getBasicInformation() {
-    $config = $this->config_factory->get('nettv.watch_cartoons');
+    $config = $this->config_factory->get('nettv.basic_information');
 
     return sprintf(
-      'Playlists are sorted by %s and hold %d movies. Movie night is %s.',
+      'Playlists are sorted by %s and hold %d movies. Movie night is %s. Check out %s for more.',
       $config->get('playlist.sort'),
       $config->get('playlist.maxlength'),
-      $config->get('movienight')
+      $config->get('movienight'),
+      \Drupal::l('this website', Url::fromUri($config->get('url')))
     );
   }
 }

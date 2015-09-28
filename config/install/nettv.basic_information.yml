@@ -1,0 +1,8 @@
+# this file stores the basic configuration for your module, when it is installed. It is
+# read once when the module is first enabled. changing it in the future would require a
+# form. I used config in this case because it required invoking a core service.
+movienight: Saturday
+playlist:
+  sort: 'Title (A-Z)'
+  maxlength: 99
+url: 'http://example.com'

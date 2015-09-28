@@ -99,13 +99,14 @@ Finally, look at the action method on the `WatchCartoons` class:
 class WatchCartoons {
 ...
   public function getBasicInformation() {
-    $config = $this->config_factory->get('nettv.watch_cartoons');
+    $config = $this->config_factory->get('nettv.basic_information');
 
     return sprintf(
-      'Playlists are sorted by %s and hold %d movies. Movie night is %s.',
+      'Playlists are sorted by %s and hold %d movies. Movie night is %s. Check out %s for more.',
       $config->get('playlist.sort'),
       $config->get('playlist.maxlength'),
-      $config->get('movienight')
+      $config->get('movienight'),
+      \Drupal::l('this website', Url::fromUri($config->get('url')))
     );
   }
 ...
@@ -119,6 +120,7 @@ movienight: Saturday
 playlist:
   sort: 'Title (A-Z)'
   maxlength: 99
+url: 'http://example.com'
 ```
 
 The code in the `getBasicInformation()` method will load the values in this file and use them to print out the message with the configurable variables you define.
@@ -136,27 +138,62 @@ This wouldn't be a complete tutorial unless you could view the information about
 namespace Drupal\nettv\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
-use Drupal\nettv\NetTV;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\nettv\WatchCartoons;
 
 /**
  * Provides a 'NetTVBlock' block.
  *
  * @Block(
  *  id = "nettv_basicinfo_block",
- *  admin_label = @Translation("nettv_basicinfo_block"),
+ *  admin_label = @Translation("NetTV BasicInfo Block"),
  * )
  */
-class NetTVBlock extends BlockBase {
+class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
+  /**
+   * Drupal\nettv\WatchCartoons definition.
+   */
+  protected $nettv_service;
+
+  /**
+   * Constructs a Drupal\Component\Plugin\PluginBase object.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @var string $nettv_service
+   *   The basic info from the WatchCartoons service for this block.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, $nettv_service) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->nettv_service = $nettv_service;
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function build(NetTV $ntv) {
+  public function build() {
     $build = [];
-    $build['nettv_basicinfo_block']['#markup'] = $ntv->getBasicInformation();
+    $build['nettv_basicinfo_block']['#markup'] = $this->nettv_service;
 
     return $build;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('nettv.watch_shows')->getBasicInformation()
+    );
   }
 
 }
@@ -164,11 +201,13 @@ class NetTVBlock extends BlockBase {
 
 This code provides a Block you can enable through Drupal's admin interface. Once you do, you will see the output from the `getBasicInformation()` method in the body of the block, like this:
 
-[image]
+[block.png]
 
 Notice that while there are lots of OOP-isms in this project, we never had to use the `new` keyword, or the ever-confusing `$this`. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.
 
-The new concept of using a Service Container to instantiate objects should be a bit clearer to you now. Remember that it exists to give you a standard way to work with objects you need to include in your project, and that using it the right way will save you time and headaches while making it easier for non-Drupal programmers to read an understand your code.
+In our Block definition, we used the create() method, which is part of the ContainerFactoryPluginInterface. This allows us to take advantage of the power of the Service Container when loading our block, and it keeps implementation-specific details out of the build() method of the block. If we wanted to switch out the WatchCartoons class with another, we would simply need to make sure any new class also had a getBasicInformation method and change the services.yml in our module. If the new class had a different means of getting this information, we still wouldn't have to touch the build() method, as long as we passed in a string. At the end of the day this is just an example.
+
+The new concept of using a Service Container to instantiate objects should be a bit clearer to you now. Remember that it exists to give you a standard way to work with calsses (services) you need to include in your project, and that using it the right way will save you time and headaches while making it easier for non-Drupal programmers to read an understand your code. While this can feel like more work to a Drupal veteran, remember that procedural Drupal 7 code looks pretty dense to other coders. This way employs less "magic naming"; instead it says what it does and how the system should go about loading and running everything.
 
 
 
@@ -177,8 +216,13 @@ The new concept of using a Service Container to instantiate objects should be a 
 
 ## Useful links
 
+* [Example NetTv Module for this tutorial on GitHub](https://github.com/liberatr/nettv)
 * [Drupal.org: Services and dependency injection in Drupal 8](https://www.drupal.org/node/2133171)
-
+* [Drupal.org: Structure of a Service File](https://www.drupal.org/node/2194463)
+* [Slideshow: Building Modules for Drupal 8](http://brantwynn.github.io/d8slides)
+* [Tutorial: Programmatically creating a block in Drupal 8](mattkorostoff.com/article/programmatically-creating-a-block-in-drupal-8)
+* [Tutorial: Config and the Service Container](http://www.sitepoint.com/building-drupal-8-module-configuration-management-service-container/)
+* API.Drupal.org: [BlockBase.php](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Block!BlockBase.php/class/BlockBase/8) and [ContainerFactoryPluginInterface.php](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Plugin!ContainerFactoryPluginInterface.php/8)
 
 
 

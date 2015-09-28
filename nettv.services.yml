@@ -1,5 +1,6 @@
+# config.factory helps us read data out of the config file in the "install" directory.
 services:
-  nettv.watch_cartoons:
+  nettv.watch_shows:
     class: Drupal\nettv\WatchCartoons
     arguments: ["@config.factory"]
 

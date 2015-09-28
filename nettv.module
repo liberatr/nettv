@@ -2,7 +2,8 @@
 
 /**
  * @file
- * Contains nettv.module.
+ * Contains nettv.module, but both of these functions were auto-genearated by drupal console.
+ * see http://drupalconsole.com/
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
