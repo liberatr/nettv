@@ -175,15 +175,18 @@ The new concept of using a Service Container to instantiate objects should be a 
 * [Slideshow: Building Modules for Drupal 8](http://brantwynn.github.io/d8slides)
 * [Tutorial: Programmatically creating a block in Drupal 8](mattkorostoff.com/article/programmatically-creating-a-block-in-drupal-8)
 * [Tutorial: Config and the Service Container](http://www.sitepoint.com/building-drupal-8-module-configuration-management-service-container/)
+* [Drupal.org: Examples for Developers](https://www.drupal.org/project/examples)
 * API.Drupal.org: [BlockBase.php](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Block!BlockBase.php/class/BlockBase/8) and [ContainerFactoryPluginInterface.php](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Plugin!ContainerFactoryPluginInterface.php/8)
 
+##Generating this code with Drupal Console
 
+To get started, I generated this module with the [Drupal Console](http://drupalconsole.com/), then edited it. I highly recommend it for those new to OOP and Drupal 8, and lazy programmers.
 
+Here are the commands I used:
 
-
-
-
-
-
-
-
+```
+drupal generate:module --module=NetTv --machine-name=nettv --module-path=/modules/custom/ --description='NetTV Services Example'  --core=8.x  --package=demo  --dependencies='block'  --no-interaction
+cd modules/custom/nettv
+drupal generate:plugin:block --module="nettv"  --class-name="NetTVBlock"  --label="NetTV BasicInfo Block"  --plugin-id="nettv_basicinfo_block"  --no-interaction
+drupal generate:service  --module="nettv"  --service-name="nettv.watch_shows"  --class-name="WatchCartoons"  --interface="no"  --services="config.factory"  --no-interaction
+```
