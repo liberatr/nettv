@@ -172,6 +172,8 @@ The new concept of using a Service Container to instantiate objects should be a 
 * [Example NetTv Module for this tutorial on GitHub](https://github.com/liberatr/nettv)
 * [Drupal.org: Services and dependency injection in Drupal 8](https://www.drupal.org/node/2133171)
 * [Drupal.org: Structure of a Service File](https://www.drupal.org/node/2194463)
+* [Drupal.org: Configuration Storage in Drupal 8](https://www.drupal.org/node/2120571)
+* [Drupal.org: Simple Configuration API](https://www.drupal.org/node/1809490)
 * [Slideshow: Building Modules for Drupal 8](http://brantwynn.github.io/d8slides)
 * [Tutorial: Programmatically creating a block in Drupal 8](mattkorostoff.com/article/programmatically-creating-a-block-in-drupal-8)
 * [Tutorial: Config and the Service Container](http://www.sitepoint.com/building-drupal-8-module-configuration-management-service-container/)
