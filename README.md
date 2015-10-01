@@ -1,4 +1,4 @@
-#Services and You: A guide to Drupal 8 modules, Dependency Injection, and decoupling your code
+#Drupal 8 Services, Dependency Injection, and decoupling your code
 
 ##Intro
 
