@@ -19,9 +19,9 @@ For example, the `l()` function is now a wrapper for the [`LinkGenerator::genera
 The source code of `l()` is:
 
 ```
-public static function l($text, Url $url, $collect_cacheability_metadata = FALSE) {
-  return static::getContainer()->get('link_generator')->generate($text, $url, $collect_cacheability_metadata);
-}
+public static function l($text, Url $url, $collect_cacheability_metadata = FALSE) {  
+  return static::getContainer()->get('link_generator')->generate($text, $url, $collect_cacheability_metadata);  
+}  
 ```
 
 This says to get the service called `link_generator` and call its `generate()` method. This way, you don't have to know where the link_generator class is defined, or even what class name it uses, but you can always find it if you need to.
@@ -37,12 +37,12 @@ For the following example, let's assume we are creating a NetTV module for a Dru
 Each Drupal 8 site comes with close to 300 Services that are defined by core. One example we might use in our set-top-box metaphor is the Config service or [Simple Configuration API](https://www.drupal.org/node/1809490). The config service is referenced by the `/core/core.services.yml` file, like so:
 
 ```
-  config.factory:
-    class: Drupal\Core\Config\ConfigFactory
-    tags:
-      - { name: event_subscriber }
-      - { name: service_collector, tag: 'config.factory.override', call: addOverride }
-    arguments: ['@config.storage', '@event_dispatcher', '@config.typed']
+  config.factory:  
+    class: Drupal\Core\Config\ConfigFactory  
+    tags:  
+      - { name: event_subscriber }  
+      - { name: service_collector, tag: 'config.factory.override', call: addOverride }  
+    arguments: ['@config.storage', '@event_dispatcher', '@config.typed']  
 ```
 
 The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced `variable_get()` and `variable_set()` in Drupal 8). The code above simply maps an alias that can be invoked in a `modulename.services.yml` file with the string `@config.factory`. The `@` symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the `arguments` line. The `@config.storage` is another service that knows where to store services on your site - usually in YAML files. `@config.typed` helps to store different data types in config objects, and the `@event_dispatcher` helps to "lazy load" classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overheard of your application and keeps the site fast and lean.
@@ -50,10 +50,10 @@ The ConfigFactory service is a class that can load Config information out of you
 Part of the NetTv module will be a `nettv.services.yml` file that lives in your `nettv` module directory:
 
 ```
-services:
-  nettv.watch_shows:
-    class: Drupal\nettv\WatchCartoons
-    arguments: ["@config.factory"]
+services:  
+  nettv.watch_shows:  
+    class: Drupal\nettv\WatchCartoons  
+    arguments: ["@config.factory"]  
 ```
 
 There are lots of things to point out about this file:
@@ -74,13 +74,13 @@ Before you go any farther, I'm going to save you several steps by having you [cl
 In `WatchCartoons.php`, look at the constructor for the class:
 
 ```
-class WatchCartoons {
-...
-  public function __construct(ConfigFactory $config_factory) {
-    $this->config_factory = $config_factory;
-  }
-...
-}
+class WatchCartoons {  
+...  
+  public function __construct(ConfigFactory $config_factory) {  
+    $this->config_factory = $config_factory;  
+  }  
+...  
+}  
 ```
 
 Notice that `NetTV` is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using `ConfigFactory`, but any code that uses this object does not know that, the implementation is kept inside our methods.
@@ -94,31 +94,31 @@ When you write code that expects an instance of the `ConfigFactory`, you're usin
 Finally, look at the action method on the `WatchCartoons` class:
 
 ```
-class WatchCartoons {
-...
-  public function getBasicInformation() {
-    $config = $this->config_factory->get('nettv.basic_information');
-
-    return sprintf(
-      'Playlists are sorted by %s and hold %d movies. Movie night is %s. Check out %s for more.',
-      $config->get('playlist.sort'),
-      $config->get('playlist.maxlength'),
-      $config->get('movienight'),
-      \Drupal::l('this website', Url::fromUri($config->get('url')))
-    );
-  }
-...
-}
+class WatchCartoons {  
+...  
+  public function getBasicInformation() {  
+    $config = $this->config_factory->get('nettv.basic_information');  
+  
+    return sprintf(  
+      'Playlists are sorted by %s and hold %d movies. Movie night is %s. Check out %s for more.',  
+      $config->get('playlist.sort'),  
+      $config->get('playlist.maxlength'),  
+      $config->get('movienight'),  
+      \Drupal::l('this website', Url::fromUri($config->get('url')))  
+    );  
+  }  
+...  
+}  
 ```
 
 The config itself is loaded from a YAML file inside your  project `config/install/nettv.basic_information.yml` - until Drupal saves it. You can set the default values for your NetTV module like so:
 
 ```
-movienight: Saturday
-playlist:
-  sort: 'Title (A-Z)'
-  maxlength: 99
-url: 'http://example.com'
+movienight: Saturday  
+playlist:  
+  sort: 'Title (A-Z)'  
+  maxlength: 99  
+url: 'http://example.com'  
 ```
 
 The code in the `getBasicInformation()` method will load the values from Config and use them to print out the message with the configurable variables you define.
@@ -130,29 +130,29 @@ Bonus: there is also an instance of `\Drupal::l()` from before, just so you can 
 This wouldn't be a complete tutorial unless you could view the information about your NetTV service somewhere on your Drupal site, so we'll make a block. In your project you'll need a file at `src/Plugin/Block/NetTVBlock.php` with this code:
 
 ```
-class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
-...
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, $nettv_service) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->nettv_service = $nettv_service;
-  }
-...
-  public function build() {
-    $build = [];
-    $build['nettv_basicinfo_block']['#markup'] = $this->nettv_service;
-
-    return $build;
-  }
-...
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('nettv.watch_shows')->getBasicInformation()
-    );
-  }
-}
+class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {  
+...  
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, $nettv_service) {  
+    parent::__construct($configuration, $plugin_id, $plugin_definition);  
+    $this->nettv_service = $nettv_service;  
+  }  
+...  
+  public function build() {  
+    $build = [];  
+    $build['nettv_basicinfo_block']['#markup'] = $this->nettv_service;  
+  
+    return $build;  
+  }  
+...  
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {  
+    return new static(  
+      $configuration,  
+      $plugin_id,  
+      $plugin_definition,  
+      $container->get('nettv.watch_shows')->getBasicInformation()  
+    );  
+  }  
+}  
 ```
 
 This code provides a Block you can enable through Drupal's admin interface. Once you do, you will see the output from the `getBasicInformation()` method in the body of the block, like this:
