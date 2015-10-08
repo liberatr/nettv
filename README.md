@@ -170,6 +170,7 @@ The new concept of using a Service Container to instantiate objects should be a 
 ##Further Reading
 
 * [Example NetTv Module for this tutorial on GitHub](https://github.com/liberatr/nettv)
+* [Video from DrupalCon Barcelona describing Services and Dependency Injection](https://youtu.be/QFsQAWHqs2U?t=26m39s)
 * [Drupal.org: Services and dependency injection in Drupal 8](https://www.drupal.org/node/2133171)
 * [Drupal.org: Structure of a Service File](https://www.drupal.org/node/2194463)
 * [Drupal.org: Configuration Storage in Drupal 8](https://www.drupal.org/node/2120571)
