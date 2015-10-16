@@ -157,7 +157,7 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
 This code provides a Block you can enable through Drupal's admin interface. Once you do, you will see the output from the `getBasicInformation()` method in the body of the block, like this:
 
-[block.png]
+<img src="./block.png" alt="The NetTv Basic Information block in situ" title="The NetTv Basic Information block in situ" />
 
 Notice that while there are lots of OOP-isms in this project, we never had to use the `new` keyword. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.
 
