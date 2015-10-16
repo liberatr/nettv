@@ -36,7 +36,14 @@ class WatchCartoons {
   public function __construct(ConfigFactory $config_factory) {
     $this->config_factory = $config_factory;
   }
-
+  
+  /**
+   * In this method we are using the Drupal config service to
+   * load the variables. Similar to Drupal 7 variable_get().
+   * It also uses the new l() function and the Url object from core.
+   * At the end of the day, we are just returning a string.
+   * This could be refactored to use a Twig template in a future tutorial.
+   */
   public function getBasicInformation() {
     $config = $this->config_factory->get('nettv.basic_information');
 
