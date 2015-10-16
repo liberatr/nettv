@@ -45,7 +45,7 @@ Each Drupal 8 site comes with close to 300 Services that are defined by core. On
     arguments: ['@config.storage', '@event_dispatcher', '@config.typed']  
 ```
 
-The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced `variable_get()` and `variable_set()` in Drupal 8). The code above simply maps an alias that can be invoked in a `modulename.services.yml` file with the string `@config.factory`. The `@` symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the `arguments` line. The `@config.storage` is another service that knows where to store services on your site - usually in YAML files. `@config.typed` helps to store different data types in config objects, and the `@event_dispatcher` helps to "lazy load" classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overhead of your application and keeps the site fast and lean.
+The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced `variable_get()` and `variable_set()` in Drupal 8). The code above simply maps an alias that can be invoked in a `modulename.services.yml` file with the string `@config.factory`. The `@` symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the `arguments` line. The `@config.storage` is another service that knows where to store variables on your site - usually in YAML files. `@config.typed` helps to store different data types in config objects, and the `@event_dispatcher` helps to "lazy load" classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overhead of your application and keeps the site fast and lean.
 
 Part of the NetTv module will be a `nettv.services.yml` file that lives in your `nettv` module directory:
 
@@ -83,15 +83,15 @@ class WatchCartoons {
 }  
 ```
 
-Notice that `NetTV` is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using `ConfigFactory`, but any code that uses this object does not know that, the implementation is kept inside our methods.
+Notice that `WatchCartoons` is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using `ConfigFactory`, but any code that uses this object does not know that, the implementation is kept inside our methods.
 
-As soon as you create a new NetTV object, it expects there to be an instance of `ConfigFactory` passed in so its methods can use it to retrieve and store config data. Notice that the argument to the constructor is type-hinted, so it must be a `ConfigFactory` object - we made sure this would work in our `nettv.services.yml` above.
+As soon as you create a new WatchCartoons object, it expects there to be an instance of `ConfigFactory` passed in so its methods can use it to retrieve and store config data. The argument to the constructor is type-hinted, so it must be a `ConfigFactory` object - we made sure this would work in our `nettv.services.yml` above.
 
 When you write code that expects an instance of the `ConfigFactory`, you're using _Dependency Injection_ - you don't instantiate the `$config_factory`, your system provides it, specifically the Service Container. You'll sometimes see a Service Container referred to as a Dependency Injection Container.
 
 ##Using the Config Factory as a Service
 
-Finally, look at the action method on the `WatchCartoons` class:
+Finally, look at the next method on the `WatchCartoons` class:
 
 ```
 class WatchCartoons {  
@@ -121,7 +121,7 @@ playlist:
 url: 'http://example.com'  
 ```
 
-The code in the `getBasicInformation()` method will load the values from Config and use them to print out the message with the configurable variables you define.
+The code in the `getBasicInformation()` method will load the values from Config and use them to print out the message with the configurable variables you define. Right now there is no way to change this config once it is loaded. That's another tutorial.
 
 Bonus: there is also an instance of `\Drupal::l()` from before, just so you can see it in practice.
 
@@ -155,11 +155,11 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
 }  
 ```
 
-This code provides a Block you can enable through Drupal's admin interface. Once you do, you will see the output from the `getBasicInformation()` method in the body of the block, like this:
+This code provides a Block you can enable through Drupal's admin interface. I assume you know how to place a block on a Drupal site, even in Drupal 8. Once you do, you will see the output from the `getBasicInformation()` method in the body of the block, like this:
 
 <img src="./block.png" alt="The NetTv Basic Information block in situ" title="The NetTv Basic Information block in situ" />
 
-Notice that while there are lots of OOP-isms in this project, we never had to use the `new` keyword. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.
+Notice that while there are lots of OOP-isms in this project, we never really had to use the `new` keyword. We are not in the weeds instantiating objects, just snapping together Services, Config and finishing everything off in the Drupal UI. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.
 
 ##Using Service Container for a Block
 
