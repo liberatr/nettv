@@ -1,12 +1,12 @@
 <h1>Services and You: A guide to Drupal 8 modules, Dependency Injection, and decoupling your code</h1>
 
-<h2>Intro</h2>
+<p><em>Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.</em></p>
 
-<p>Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.</p>
+<h2>Intro</h2>
 
 <p>As a dyed-in-the-wool Drupal programmer looking to get into coding Drupal 8, there were a few modern subjects I had to familiarize myself with. Chief among them was the concept in Symfony and Drupal 8 called <em>Services</em>, which help you keep your code decoupled and, in my opinion, easier to read.</p>
 
-<p>A <em>Service</em> is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 site has a service for sending <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8">email</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8">logging errors</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8">making HTTP requests</a>, and dozens of other common tasks.</p>
+<p>A <em>Service</em> is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 sites have a service for sending <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8">email</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8">logging errors</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8">making HTTP requests</a>, and dozens of other common tasks.</p>
 
 <p>While Services are objects, not all objects are suitable services - for example, a node is not a service, it is content. Nor is a View a service. There is, however, a <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Utility!Token.php/class/Token/8"><code>token</code></a> service, which is a great example, since you only really need one token service for your entire site. The new Configuration Management systems in Drupal 8 use services extensively, and you will learn a bit about Config in this blog post. First, I'll show you how a very common function, making links, uses services.</p>
 
@@ -28,7 +28,7 @@ public static function l($text, Url $url, $collect_cacheability_metadata = FALSE
 
 <h2>A metaphor for Services</h2>
 
-<p>One way of thinking about Services, if this is a new concept for you, is the set-top-box on your TV. Wether it's made by Apple, Amazon, Google or Roku, these set-top boxes all have Services in common. I don't need to know the IP address and the API schema for Netflix in order to watch a film. If I'd rather watch HBO Go, I can ask my set-top-box to load that service instead. The set-top-box is a <em>Service Container</em> that gives you a means of accessing any of these services, obscuring the technical details. Drupal also uses the idea of a service container to abstract the loading and instantiation of service objects. The above code called the <code>static::getContainer()</code> method, returning the service container, which was then used to load <code>link_gernerator</code>.</p>
+<p>One way of thinking about Services, if this is a new concept for you, is the set-top-box on your TV. Whether it's made by Apple, Amazon, Google or Roku, these set-top boxes all have Services in common. I don't need to know the IP address and the API schema for Netflix in order to watch a film. If I'd rather watch HBO Go, I can ask my set-top-box to load that service instead. The set-top-box is a <em>Service Container</em> that gives you a means of accessing any of these services, obscuring the technical details. Drupal also uses the idea of a service container to abstract the loading and instantiation of service objects. The above code called the <code>static::getContainer()</code> method, returning the service container, which was then used to load <code>link_gernerator</code>.</p>
 
 <h2>A Practical Example of Services and the Service Container in Drupal 8</h2>
 
