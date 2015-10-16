@@ -132,14 +132,14 @@ This wouldn't be a complete tutorial unless you could view the information about
 ```
 class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {  
 ...  
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, $nettv_service) {  
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, $basic_info) {  
     parent::__construct($configuration, $plugin_id, $plugin_definition);  
-    $this->nettv_service = $nettv_service;  
+    $this->basic_info = $basic_info;  
   }  
 ...  
   public function build() {  
     $build = [];  
-    $build['nettv_basicinfo_block']['#markup'] = $this->nettv_service;  
+    $build['nettv_basicinfo_block']['#markup'] = $this->basic_info;  
   
     return $build;  
   }  
