@@ -1,12 +1,12 @@
 #Drupal 8 Services, Dependency Injection, and decoupling your code
 
-##Intro
+*Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.*
 
-Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.
+##Intro
 
 As a dyed-in-the-wool Drupal programmer looking to get into coding Drupal 8, there were a few modern subjects I had to familiarize myself with. Chief among them was the concept in Symfony and Drupal 8 called _Services_, which help you keep your code decoupled and, in my opinion, easier to read.
 
-A _Service_ is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 site has a service for sending [email](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8), for [logging errors](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8), for [making HTTP requests](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8), and dozens of other common tasks.
+A _Service_ is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 sites have a service for sending [email](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8), for [logging errors](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8), for [making HTTP requests](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8), and dozens of other common tasks.
 
 While Services are objects, not all objects are suitable services - for example, a node is not a service, it is content. Nor is a View a service. There is, however, a [`token`](https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Utility!Token.php/class/Token/8) service, which is a great example, since you only really need one token service for your entire site. The new Configuration Management systems in Drupal 8 use services extensively, and you will learn a bit about Config in this blog post. First, I'll show you how a very common function, making links, uses services.
 
@@ -28,7 +28,7 @@ This says to get the service called `link_generator` and call its `generate()` m
 
 ##A metaphor for Services
 
-One way of thinking about Services, if this is a new concept for you, is the set-top-box on your TV. Wether it's made by Apple, Amazon, Google or Roku, these set-top boxes all have Services in common. I don't need to know the IP address and the API schema for Netflix in order to watch a film. If I'd rather watch HBO Go, I can ask my set-top-box to load that service instead. The set-top-box is a _Service Container_ that gives you a means of accessing any of these services, obscuring the technical details. Drupal also uses the idea of a service container to abstract the loading and instantiation of service objects. The above code called the `static::getContainer()` method, returning the service container, which was then used to load `link_gernerator`.
+One way of thinking about Services, if this is a new concept for you, is the set-top-box on your TV. Whether it's made by Apple, Amazon, Google or Roku, these set-top boxes all have Services in common. I don't need to know the IP address and the API schema for Netflix in order to watch a film. If I'd rather watch HBO Go, I can ask my set-top-box to load that service instead. The set-top-box is a _Service Container_ that gives you a means of accessing any of these services, obscuring the technical details. Drupal also uses the idea of a service container to abstract the loading and instantiation of service objects. The above code called the `static::getContainer()` method, returning the service container, which was then used to load `link_gernerator`.
 
 ##A Practical Example of Services and the Service Container in Drupal 8
 
