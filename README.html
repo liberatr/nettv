@@ -45,7 +45,7 @@ public static function l($text, Url $url, $collect_cacheability_metadata = FALSE
     arguments: ['@config.storage', '@event_dispatcher', '@config.typed']
 </code></pre><br />
 
-<p>The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced <code>variable_get()</code> and <code>variable_set()</code> in Drupal 8). The code above simply maps an alias that can be invoked in a <code>modulename.services.yml</code> file with the string <code>@config.factory</code>. The <code>@</code> symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the <code>arguments</code> line. The <code>@config.storage</code> is another service that knows where to store services on your site - usually in YAML files. <code>@config.typed</code> helps to store different data types in config objects, and the <code>@event_dispatcher</code> helps to "lazy load"; classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overhead of your application and keeps the site fast and lean.</p>
+<p>The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced <code>variable_get()</code> and <code>variable_set()</code> in Drupal 8). The code above simply maps an alias that can be invoked in a <code>modulename.services.yml</code> file with the string <code>@config.factory</code>. The <code>@</code> symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the <code>arguments</code> line. The <code>@config.storage</code> is another service that knows where to store variables on your site - usually in YAML files. <code>@config.typed</code> helps to store different data types in config objects, and the <code>@event_dispatcher</code> helps to "lazy load"; classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overhead of your application and keeps the site fast and lean.</p>
 
 <p>Part of the NetTv module will be a <code>nettv.services.yml</code> file that lives in your <code>nettv</code> module directory:</p>
 
@@ -85,15 +85,15 @@ class WatchCartoons {
 }
 </code></pre><br />
 
-<p>Notice that <code>NetTV</code> is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using <code>ConfigFactory</code>, but any code that uses this object does not know that, the implementation is kept inside our methods.</p>
+<p>Notice that <code>WatchCartoons</code> is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using <code>ConfigFactory</code>, but any code that uses this object does not know that, the implementation is kept inside our methods.</p>
 
-<p>As soon as you create a new NetTV object, it expects there to be an instance of <code>ConfigFactory</code> passed in so its methods can use it to retrieve and store config data. Notice that the argument to the constructor is type-hinted, so it must be a <code>ConfigFactory</code> object - we made sure this would work in our <code>nettv.services.yml</code> above.</p>
+<p>As soon as you create a new WatchCartoons object, it expects there to be an instance of <code>ConfigFactory</code> passed in so its methods can use it to retrieve and store config data. Notice that the argument to the constructor is type-hinted, so it must be a <code>ConfigFactory</code> object - we made sure this would work in our <code>nettv.services.yml</code> above.</p>
 
 <p>When you write code that expects an instance of the <code>ConfigFactory</code>, you're using <em>Dependency Injection</em> - you don't instantiate the <code>$config_factory</code>, your system provides it, specifically the Service Container. You'll sometimes see a Service Container referred to as a Dependency Injection Container.</p>
 
 <h2>Using the Config Factory as a Service</h2>
 
-<p>Finally, look at the action method on the <code>WatchCartoons</code> class:</p>
+<p>Finally, look at the next method on the <code>WatchCartoons</code> class:</p>
 
 <pre><code>
 class WatchCartoons { 
@@ -124,7 +124,7 @@ playlist:
 url: 'http://example.com'
 </code></pre><br />
 
-<p>The code in the <code>getBasicInformation()</code> method will load the values from Config and use them to print out the message with the configurable variables you define.</p>
+<p>The code in the <code>getBasicInformation()</code> method will load the values from Config and use them to print out the message with the configurable variables you define. Right now there is no way to change this config once it is loaded. That's another tutorial.</p>
 
 <p>Bonus: there is also an instance of <code>\Drupal::l()</code> from before, just so you can see it in practice.</p>
 
@@ -160,11 +160,11 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
 } 
 </code></pre><br />
 
-<p>This code provides a Block you can enable through Drupal's admin interface. Once you do, you will see the output from the <code>getBasicInformation()</code> method in the body of the block, like this:</p>
+<p>This code provides a Block you can enable through Drupal's admin interface. I assume you know how to place a block on a Drupal site, even in Drupal 8. Once you do, you will see the output from the <code>getBasicInformation()</code> method in the body of the block, like this:</p>
 
 <p>[block.png]</p>
 
-<p>Notice that while there are lots of OOP-isms in this project, we never had to use the <code>new</code> keyword. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.</p>
+<p>Notice that while there are lots of OOP-isms in this project, we never really had to use the <code>new</code> keyword. We are not in the weeds instantiating objects, just snapping together Services, Config and finishing everything off in the Drupal UI. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.</p>
 
 <h2>Using Service Container for a Block</h2>
 
