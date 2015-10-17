@@ -9,6 +9,10 @@
  *
  * This block uses the ContainerFactoryPluginInterface to handle dependency injection,
  * (using the service container) so the service is loaded outside of the build() method.
+ * 
+ * ContainerFactoryPluginInterface only has one method you need to implement, which is
+ * called create(). Create passes info along to the constructor that was loaded by the
+ * service container. In this case I also loaded our block information in create().
  */
 
 namespace Drupal\nettv\Plugin\Block;
@@ -31,7 +35,7 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Drupal\nettv\WatchCartoons definition.
    */
-  protected $nettv_service;
+  protected $basic_info;
 
   /**
    * Constructs a Drupal\Component\Plugin\PluginBase object.
@@ -42,12 +46,12 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @var string $nettv_service
-   *   The basic info from the WatchCartoons service for this block.
+   * @var string $basic_info
+   *   The information from the WatchCartoons service for this block.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, $nettv_service) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, $basic_info) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->nettv_service = $nettv_service;
+    $this->basic_info = $basic_info;
   }
 
   /**
@@ -55,12 +59,12 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
    */
   public function build() {
     $build = [];
-    $build['nettv_basicinfo_block']['#markup'] = $this->nettv_service;
+    $build['nettv_basicinfo_block']['#markup'] = $this->basic_info;
 
     return $build;
   }
 
-    /**
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -68,6 +72,7 @@ class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {
       $configuration,
       $plugin_id,
       $plugin_definition,
+      //this is not the only way to write this code. You may want to save the Service here instead of the string.
       $container->get('nettv.watch_shows')->getBasicInformation()
     );
   }

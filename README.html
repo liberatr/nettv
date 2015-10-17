@@ -1,0 +1,188 @@
+<h1>Services and You: A guide to Drupal 8 modules, Dependency Injection, and decoupling your code</h1>
+
+<p><em>Disclaimer: This is not a tutorial about the services module, rather the object-oriented PHP concept of Services, the Service Container and Dependency Injection.</em></p>
+
+<h2>Intro</h2>
+
+<p>As a dyed-in-the-wool Drupal programmer looking to get into coding Drupal 8, there were a few modern subjects I had to familiarize myself with. Chief among them was the concept in Symfony and Drupal 8 called <em>Services</em>, which help you keep your code decoupled and, in my opinion, easier to read.</p>
+
+<p>A <em>Service</em> is simply an object, and you usually only have one instance of each service's class for each service on a site. For example, Drupal 8 sites have a service for sending <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Mail!MailManager.php/function/MailManager%3A%3Amail/8">email</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!EventSubscriber!ExceptionLoggingSubscriber.php/class/ExceptionLoggingSubscriber/8">logging errors</a>, for <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Http!Client.php/class/Client/8">making HTTP requests</a>, and dozens of other common tasks.</p>
+
+<p>While Services are objects, not all objects are suitable services - for example, a node is not a service, it is content. Nor is a View a service. There is, however, a <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Utility!Token.php/class/Token/8"><code>token</code></a> service, which is a great example, since you only really need one token service for your entire site. The new Configuration Management systems in Drupal 8 use services extensively, and you will learn a bit about Config in this blog post. First, I'll show you how a very common function, making links, uses services.</p>
+
+<h2>A Quick Example of Services</h2>
+
+<p>Services are used in a number of ways in Drupal. Many of the core systems are implemented as services, and many familiar core functions are now procedural wrappers for services.</p>
+
+<p>For example, the <code>l()</code> function is now a wrapper for the <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Utility!LinkGenerator.php/function/LinkGenerator%3A%3Agenerate/8"><code>LinkGenerator::generate()</code></a> function. You call the function as such <code>\Drupal::l()</code>, because everything is namespaced now, but that's another blog post.</p>
+
+<p>The source code of <code>l()</code> is:</p>
+
+<pre><code>
+public static function l($text, Url $url, $collect_cacheability_metadata = FALSE) { 
+  return static::getContainer()-&gt;get('link_generator')-&gt;generate($text, $url, $collect_cacheability_metadata); 
+}
+</code></pre><br />
+
+<p>This says to get the service called <code>link_generator</code> and call its <code>generate()</code> method. This way, you don't have to know where the link_generator class is defined, or even what class name it uses, but you can always find it if you need to.</p>
+
+<h2>A metaphor for Services</h2>
+
+<p>One way of thinking about Services, if this is a new concept for you, is the set-top-box on your TV. Whether it's made by Apple, Amazon, Google or Roku, these set-top boxes all have Services in common. I don't need to know the IP address and the API schema for Netflix in order to watch a film. If I'd rather watch HBO Go, I can ask my set-top-box to load that service instead. The set-top-box is a <em>Service Container</em> that gives you a means of accessing any of these services, obscuring the technical details. Drupal also uses the idea of a service container to abstract the loading and instantiation of service objects. The above code called the <code>static::getContainer()</code> method, returning the service container, which was then used to load <code>link_gernerator</code>.</p>
+
+<h2>A Practical Example of Services and the Service Container in Drupal 8</h2>
+
+<p>For the following example, let's assume we are creating a NetTV module for a Drupal 8 site that will give us some of the features we expect out of an internet TV service. In Drupal 8, you can put your custom modules in the <code>/modules</code> directory in the document root of your Drupal site. All your files for the following example will live in the <code>/modules/custom/nettv</code> directory.</p>
+
+<p>Each Drupal 8 site comes with close to 300 Services that are defined by core. One example we might use in our set-top-box metaphor is the Config service or <a href="https://www.drupal.org/node/1809490">Simple Configuration API</a>. The config service is referenced by the <code>/core/core.services.yml</code> file, like so:</p>
+
+<pre><code>
+  config.factory: 
+    class: Drupal\Core\Config\ConfigFactory 
+    tags: 
+      - { name: event_subscriber } 
+      - { name: service_collector, tag: 'config.factory.override', call: addOverride } 
+    arguments: ['@config.storage', '@event_dispatcher', '@config.typed']
+</code></pre><br />
+
+<p>The ConfigFactory service is a class that can load Config information out of your Drupal site (Config has replaced <code>variable_get()</code> and <code>variable_set()</code> in Drupal 8). The code above simply maps an alias that can be invoked in a <code>modulename.services.yml</code> file with the string <code>@config.factory</code>. The <code>@</code> symbol in this case tells Drupal's Service Container to find the ConfigFactory class, and how it should be instantiated with the <code>arguments</code> line. The <code>@config.storage</code> is another service that knows where to store variables on your site - usually in YAML files. <code>@config.typed</code> helps to store different data types in config objects, and the <code>@event_dispatcher</code> helps to "lazy load"; classes so loading code and instantiating objects only happens when the objects are actually needed, which reduces the overhead of your application and keeps the site fast and lean.</p>
+
+<p>Part of the NetTv module will be a <code>nettv.services.yml</code> file that lives in your <code>nettv</code> module directory:</p>
+
+<pre><code>
+services: 
+  nettv.watch_shows: 
+    class: Drupal\nettv\WatchCartoons  
+    arguments: ["@config.factory"]
+</code></pre><br />
+
+<p>There are lots of things to point out about this file:</p>
+
+<ul>
+<li>There is a reference to a class called <code>WatchCartoons</code>, which is defined as a service provided by this module.</li>
+<li>Just as with the defenition of <code>config.factory</code> in core, we are naming a Service called <code>nettv.watch_shows</code>.</li>
+<li>The name of the service is anything you want. It does not depend on the class name, which keeps services flexible.</li>
+<li>The <code>WatchCartoons</code> class you write does not need to be specific to this module or even Drupal in order to be used, because eventually the Service Container will call it by using this YAML definition. i.e. You can bring in outside libraries from github or other projects.</li>
+<li>By using this Service model and namespacing, your could have another module on the site that defines a <code>WatchCartoons</code> class and never fear a conflict between the two.</li>
+<li>When you add the ConfigFactory to your class' constructor, it will be added using Dependency Injection. You can rest easy knowing that Drupal's Service Container will take care of loading the right code and getting the right object to the constructor at the right time.</li>
+</ul>
+
+<h2>The Code</h2>
+
+<p>Before you go any farther, I'm going to save you several steps by having you <a href="https://github.com/liberatr/nettv">clone this github repository</a>, which contains a copy of the code for this tutorial. Go and get a copy of this module and open it in your favorite editor, then come back and keep reading.</p>
+
+<h2>Constructing an object that depends on a Service</h2>
+
+<p>In <code>WatchCartoons.php</code>, look at the constructor for the class:</p>
+
+<pre><code>
+class WatchCartoons { 
+... 
+  public function __construct(ConfigFactory $config_factory) { 
+    $this-&gt;config_factory = $config_factory; 
+  } 
+... 
+}
+</code></pre><br />
+
+<p>Notice that <code>WatchCartoons</code> is just a basic PHP class, it does not extend or implement anything specific to Drupal. In this case we are using <code>ConfigFactory</code>, but any code that uses this object does not know that, the implementation is kept inside our methods.</p>
+
+<p>As soon as you create a new WatchCartoons object, it expects there to be an instance of <code>ConfigFactory</code> passed in so its methods can use it to retrieve and store config data. Notice that the argument to the constructor is type-hinted, so it must be a <code>ConfigFactory</code> object - we made sure this would work in our <code>nettv.services.yml</code> above.</p>
+
+<p>When you write code that expects an instance of the <code>ConfigFactory</code>, you're using <em>Dependency Injection</em> - you don't instantiate the <code>$config_factory</code>, your system provides it, specifically the Service Container. You'll sometimes see a Service Container referred to as a Dependency Injection Container.</p>
+
+<h2>Using the Config Factory as a Service</h2>
+
+<p>Finally, look at the next method on the <code>WatchCartoons</code> class:</p>
+
+<pre><code>
+class WatchCartoons { 
+... 
+  public function getBasicInformation() { 
+    $config = $this-&gt;config_factory-&gt;get('nettv.basic_information');
+
+    return sprintf(  
+      'Playlists are sorted by %s and hold %d movies. Movie night is %s. Check out %s for more.',  
+      $config-&gt;get('playlist.sort'),  
+      $config-&gt;get('playlist.maxlength'),  
+      $config-&gt;get('movienight'),  
+      \Drupal::l('this website', Url::fromUri($config-&gt;get('url')))  
+    );  
+
+  } 
+... 
+} 
+</code></pre><br />
+
+<p>The config itself is loaded from a YAML file inside your  project <code>config/install/nettv.basic_information.yml</code> - until Drupal saves it. You can set the default values for your NetTV module like so:</p>
+
+<pre><code>
+movienight: Saturday 
+playlist: 
+  sort: 'Title (A-Z)' 
+  maxlength: 99 
+url: 'http://example.com'
+</code></pre><br />
+
+<p>The code in the <code>getBasicInformation()</code> method will load the values from Config and use them to print out the message with the configurable variables you define. Right now there is no way to change this config once it is loaded. That's another tutorial.</p>
+
+<p>Bonus: there is also an instance of <code>\Drupal::l()</code> from before, just so you can see it in practice.</p>
+
+<h2>Using your Class in Drupal</h2>
+
+<p>This wouldn't be a complete tutorial unless you could view the information about your NetTV service somewhere on your Drupal site, so we'll make a block. In your project you'll need a file at <code>src/Plugin/Block/NetTVBlock.php</code> with this code:</p>
+
+<pre><code>
+class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface { 
+... 
+  public function <strong>construct(array $configuration, $plugin_id, $plugin_definition, $basic_info) { 
+    parent::</strong>construct($configuration, $plugin_id, $plugin_definition); 
+    $this-&gt;basic_info = $basic_info; 
+  } 
+... 
+  public function build() { 
+    $build = []; 
+    $build['nettv_basicinfo_block']['#markup'] = $this-&gt;basic_info;  
+
+    return $build;  
+
+
+  } 
+... 
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) { 
+    return new static( 
+      $configuration, 
+      $plugin_id, 
+      $plugin_definition, 
+      $container-&gt;get('nettv.watch_shows')->getBasicInformation() 
+    ); 
+  } 
+} 
+</code></pre><br />
+
+<p>This code provides a Block you can enable through Drupal's admin interface. I assume you know how to place a block on a Drupal site, even in Drupal 8. Once you do, you will see the output from the <code>getBasicInformation()</code> method in the body of the block, like this:</p>
+
+<p>[block.png]</p>
+
+<p>Notice that while there are lots of OOP-isms in this project, we never really had to use the <code>new</code> keyword. We are not in the weeds instantiating objects, just snapping together Services, Config and finishing everything off in the Drupal UI. Once you learn how to work with Services and Dependency Injection, you'll be thinking at a higher level, and you can just focus on the specific task you're working on. This is one of the promises of Drupal, to solve 80% of the problems for you, and let you focus on the 20% of your project that is unique.</p>
+
+<h2>Using Service Container for a Block</h2>
+
+<p>In our Block definition, we used the <code>create()</code> method, which is part of the <code>ContainerFactoryPluginInterface</code>. This allows us to take advantage of the power of the Service Container when loading our block, and it keeps implementation-specific details out of the <code>build()</code> method of the block. If we wanted to switch out the <code>WatchCartoons</code> class with another one, we would simply need to make sure any new class also had a <code>getBasicInformation()</code> method and change the <code>nettv.services.yml</code> in our module. If the new class had a different means of getting this information, we still wouldn't have to touch the <code>build()</code> method, as long as we passed in a string. At the end of the day, this is just an example. Your mileage will vary.</p>
+
+<p>The new concept of using a Service Container to instantiate objects should be a bit clearer to you now. Remember that it exists to give you a standard way to work with objects (Services) you need to include in your project, and that using it the right way will save you time and headaches while making it easier for non-Drupal programmers to read an understand your code. While this can feel like more work to a Drupal veteran, remember that procedural Drupal 7 code looks pretty dense to other coders. This way employs less "magic naming"; instead it says what it does and how the system should go about loading and running everything.</p>
+
+<h2>Further Reading</h2>
+
+<ul>
+<li><a href="https://github.com/liberatr/nettv">Example NetTv Module for this tutorial on GitHub</a></li>
+<li><a href="https://youtu.be/QFsQAWHqs2U?t=26m39s">Video from DrupalCon Barcelona describing Services and Dependency Injection</a></li>
+<li><a href="https://www.drupal.org/node/2133171">Drupal.org: Services and dependency injection in Drupal 8</a></li>
+<li><a href="https://www.drupal.org/node/2194463">Drupal.org: Structure of a Service File</a></li>
+<li><a href="https://www.drupal.org/node/2120571">Drupal.org: Configuration Storage in Drupal 8</a></li>
+<li><a href="https://www.drupal.org/node/1809490">Drupal.org: Simple Configuration API</a></li>
+<li><a href="http://brantwynn.github.io/d8slides">Slideshow: Building Modules for Drupal 8</a></li>
+<li><a href="mattkorostoff.com/article/programmatically-creating-a-block-in-drupal-8">Tutorial: Programmatically creating a block in Drupal 8</a></li>
+<li><a href="http://www.sitepoint.com/building-drupal-8-module-configuration-management-service-container/">Tutorial: Config and the Service Container</a></li>
+<li>API.Drupal.org: <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Block!BlockBase.php/class/BlockBase/8">BlockBase.php</a> and <a href="https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Plugin!ContainerFactoryPluginInterface.php/8">ContainerFactoryPluginInterface.php</a></li>
+</ul>
