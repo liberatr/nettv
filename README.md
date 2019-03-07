@@ -18,7 +18,7 @@ For example, the `l()` function is now a wrapper for the [`LinkGenerator::genera
 
 The source code of `l()` is:
 
-```
+```php
 public static function l($text, Url $url, $collect_cacheability_metadata = FALSE) {  
   return static::getContainer()->get('link_generator')->generate($text, $url, $collect_cacheability_metadata);  
 }  
@@ -36,7 +36,7 @@ For the following example, let's assume we are creating a NetTV module for a Dru
 
 Each Drupal 8 site comes with close to 300 Services that are defined by core. One example we might use in our set-top-box metaphor is the Config service or [Simple Configuration API](https://www.drupal.org/node/1809490). The config service is referenced by the `/core/core.services.yml` file, like so:
 
-```
+```yaml
   config.factory:  
     class: Drupal\Core\Config\ConfigFactory  
     tags:  
@@ -49,7 +49,7 @@ The ConfigFactory service is a class that can load Config information out of you
 
 Part of the NetTv module will be a `nettv.services.yml` file that lives in your `nettv` module directory:
 
-```
+```yaml
 services:  
   nettv.watch_shows:  
     class: Drupal\nettv\WatchCartoons  
@@ -73,13 +73,13 @@ Before you go any farther, I'm going to save you several steps by having you [cl
 
 In `WatchCartoons.php`, look at the constructor for the class:
 
-```
+```php
 class WatchCartoons {  
-...  
+//...  
   public function __construct(ConfigFactory $config_factory) {  
     $this->config_factory = $config_factory;  
   }  
-...  
+//...  
 }  
 ```
 
@@ -93,9 +93,9 @@ When you write code that expects an instance of the `ConfigFactory`, you're usin
 
 Finally, look at the next method on the `WatchCartoons` class:
 
-```
+```php
 class WatchCartoons {  
-...  
+//...  
   public function getBasicInformation() {  
     $config = $this->config_factory->get('nettv.basic_information');  
   
@@ -107,13 +107,13 @@ class WatchCartoons {
       \Drupal::l('this website', Url::fromUri($config->get('url')))  
     );  
   }  
-...  
+//...  
 }  
 ```
 
 The config itself is loaded from a YAML file inside your  project `config/install/nettv.basic_information.yml` - until Drupal saves it. You can set the default values for your NetTV module like so:
 
-```
+```yaml
 movienight: Saturday  
 playlist:  
   sort: 'Title (A-Z)'  
@@ -129,21 +129,21 @@ Bonus: there is also an instance of `\Drupal::l()` from before, just so you can 
 
 This wouldn't be a complete tutorial unless you could view the information about your NetTV service somewhere on your Drupal site, so we'll make a block. In your project you'll need a file at `src/Plugin/Block/NetTVBlock.php` with this code:
 
-```
+```php
 class NetTVBlock extends BlockBase implements ContainerFactoryPluginInterface {  
-...  
+//...  
   public function __construct(array $configuration, $plugin_id, $plugin_definition, $basic_info) {  
     parent::__construct($configuration, $plugin_id, $plugin_definition);  
     $this->basic_info = $basic_info;  
   }  
-...  
+//...  
   public function build() {  
     $build = [];  
     $build['nettv_basicinfo_block']['#markup'] = $this->basic_info;  
   
     return $build;  
   }  
-...  
+//...  
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {  
     return new static(  
       $configuration,  
@@ -187,7 +187,7 @@ To get started, I generated this module with the [Drupal Console](http://drupalc
 
 Here are the commands I used:
 
-```
+```bash
 drupal generate:module --module=NetTv --machine-name=nettv --module-path=/modules/custom/ --description='NetTV Services Example'  --core=8.x  --package=demo  --dependencies='block'  --no-interaction
 cd modules/custom/nettv
 drupal generate:plugin:block --module="nettv"  --class-name="NetTVBlock"  --label="NetTV BasicInfo Block"  --plugin-id="nettv_basicinfo_block"  --no-interaction
